@@ -1,5 +1,5 @@
-INSERT INTO ProyectoBD.dbo.Materia (Clave,Nombre_Materia,Tipo_Asignatura,Nivel,Semestre,Creditos) VALUES
-	 (N'T101',N'PROGRAMACION',N'OBLIGATORIA',1,2,6.0),
+INSERT INTO ProyectoBD.dbo.Materia (Clave,Nombre_Materia,Tipo_Asignatura,Nivel,Semestre,Creditos) VALUES	
+	(N'T101',N'PROGRAMACION',N'OBLIGATORIA',1,2,6.0),
 	 (N'T102',N'ANALISIS Y DISEÑO DE SISTEMAS',N'OBLIGATORIA',1,1,9.0),
 	 (N'T103',N'ESTRUCTURA DE DATOS',N'OBLIGATORIA',1,3,6.0),
 	 (N'T104',N'ADMINISTRACCION DE SISTEMAS OPERATIVOS',N'OBLIGATORIA',1,1,6.0),
@@ -77,3 +77,8 @@ INSERT INTO ProyectoBD.dbo.Materia (Clave,Nombre_Materia,Tipo_Asignatura,Nivel,S
 	 (N'T404',N'APLICACIONES DISTRIBUIDAS',N'OBLIGATORIA',4,8,6.0);
 INSERT INTO ProyectoBD.dbo.Materia (Clave,Nombre_Materia,Tipo_Asignatura,Nivel,Semestre,Creditos) VALUES
 	 (N'T405',N'DISPOSITIVOS PROGRAMABLES',N'OBLIGATORIA',4,6,7.5);
+
+
+INSERT INTO ProyectoBD.dbo.Materia (Clave,Nombre_Materia,Tipo_Asignatura , Nivel ,Semestre, Creditos) VALUES 
+	('T218', 'OPTATIVA I', 'OPTATIVA', 2, 8, 7.50 );
+
