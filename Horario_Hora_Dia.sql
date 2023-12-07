@@ -43,6 +43,10 @@ INSERT INTO ProyectoBD.dbo.Horario (Hora,Dia) VALUES
 	 (N'10:00:11:30',N'Viernes'),
 	 (N'11:30-13:00',N'Viernes');
 INSERT INTO ProyectoBD.dbo.Horario (Hora,Dia) VALUES
+
+
+
+	edita
 	 (N'13:00-14:30',N'Viernes'),
 	 (N'14:30-16:00',N'Viernes'),
 	 (N'16:00-17:30',N'Viernes'),
