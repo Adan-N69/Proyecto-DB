@@ -192,3 +192,15 @@ CREATE OR ALTER PROCEDURE Agregar_CursoHSP
 				END
 		END;
 
+
+CREATE OR ALTER PROCEDURE BorrarCursoElegido
+	@ID_curso int,
+	@ID_kardex int
+	AS
+	BEGIN
+		---Borra un curso elegido por el usuario
+		DELETE FROM [dbo].[Horario_Sugerido] WHERE ID_Curso = @ID_curso AND Kardex_HS =@ID_kardex;
+	
+	
+	END;
+
