@@ -141,13 +141,14 @@ CREATE OR ALTER PROCEDURE Validar_SecuenciaMixto
 		IF(@Cont_Cursadas = @Total_Secuencia) --- valida si tiene todas las secuencias
 		BEGIN
 			SET @Validacion = 0;
+			----retorna valor a java y ejecutar el proceso Agragar CursoHSP
 		END
 
 		ELSE --- No tiene todas las validaciones
 		BEGIN 
 			 SET @Validacion = 1;
-			--llamar en java mnesje
-		--si respuesta es Si insertar
+			--MOStrar mensaje y permitir a l usuario selecccionar si continuar o no
+		--si respuesta es continuar mandar a ejecutar Agregar_CursoHSP
 		---
 		END
 	
@@ -185,7 +186,7 @@ CREATE OR ALTER PROCEDURE Agregar_CursoHSP
 					ELSE --- hay translapes
 					BEGIN
 						SET @Validacion = 1;
-						---mostrar msj en java
+						---mostrar msj en java de que existe traslape
 					END
 
 				END
