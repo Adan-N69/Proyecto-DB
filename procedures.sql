@@ -166,17 +166,18 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 			
 			if(@CountCursos  > 0)
 			begin
-				
+				---Cursos disponibles de esa materia
 				CREATE TABLE #OpcionesM(ID_Curso int);
 
 				INSERT INTO #OpcionesM(ID_Curso)
 				SELECT ID_curso FROM [dbo].[Curso] C 
 				WHERE C.Clave_Materia = @ClaveMateria and [Grupo] LIKE '%M%' ORDER BY NEWID();
 
+				--validar si la tabla horario sugerido ya tiee cursos
 				SET @CursosActuales = (SELECT COUNT(*) FROM Horario_Sugerido WHERE Kardex_HS = @Kardex);
 		
 				
-				if(@CursosActuales = 0)
+				if(@CursosActuales = 0) ---si estaba vacia 
 				begin
 					SET @CursoElegido = (SELECT TOP(1) ID_Curso FROM #OpcionesM );
 
@@ -185,7 +186,7 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 	
 				end--IF CURSOS ACTUALES
 				
-				else  --CASO HORARIO > 0
+				else  --CASO HORARIO > 0 no esta vacia
 				begin
 						 --RECORRIDO----------------------------------------------------------------------
 					declare @table table( Id_Curso int);
@@ -195,7 +196,7 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 
 					SET @MateriasHS =(SELECT COUNT(DISTINCT ID_Curso) FROM Horario_Sugerido);
 
-				
+					---recorrer curso por cuso de los cursos diponibles y validar que se inserten 6 materias
 					While(@count > 0 AND @MateriasHS < 6)
 					begin
 
@@ -291,6 +292,21 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 		END--END IF TH = 2
 
 END; --END STORE PROCEDURE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
