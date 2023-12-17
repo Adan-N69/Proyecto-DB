@@ -15,7 +15,7 @@ CREATE OR ALTER PROCEDURE Validar_TipoMateria
 
 			IF(@Cont_Elegibles < 2)
 			BEGIN
-				EXECUTE generar_horario @Clave_Materia, @Tipo_Horario, @KardexVT;
+				EXECUTE Asignar_CursosHS @Clave_Materia, @Tipo_Horario, @KardexVT;
 			END
 
 		END
@@ -29,7 +29,7 @@ CREATE OR ALTER PROCEDURE Validar_TipoMateria
 
 			IF(@Cont_Optativas1 < 1)
 			BEGIN
-				EXECUTE generar_horario @Clave_Materia, @Tipo_Horario, @KardexVT;
+				EXECUTE  Asignar_CursosHS @Clave_Materia, @Tipo_Horario, @KardexVT;
 					
 			END
 		END
@@ -43,13 +43,13 @@ CREATE OR ALTER PROCEDURE Validar_TipoMateria
 
 			IF(@Cont_Optativas2 < 1)
 			BEGIN
-				EXECUTE generar_horario @Clave_Materia, @Tipo_Horario, @KardexVT;
+				EXECUTE Asignar_CursosHS @Clave_Materia, @Tipo_Horario, @KardexVT;
 			END
 		END
 
 		ELSE
 		BEGIN
-			EXECUTE generar_horario @Clave_Materia, @Tipo_Horario, @KardexVT;
+			EXECUTE Asignar_CursosHS @Clave_Materia, @Tipo_Horario, @KardexVT;
 		END
 END;
 
@@ -129,7 +129,15 @@ CREATE OR ALTER PROCEDURE Generar_Horario
 	BEGIN
 		IF(@Estatus_Alumno = 1)
 		BEGIN
+			DELETE FROM Horario_Sugerido WHERE [Kardex_HS] = @Kardex;
 				EXEC Recorrido_Materia @Kardex, @Tipo_Horario;
+				SELECT  C.Grupo, M.Nombre_Materia, P.P_Apellido_P+' '+P.P_Apellido_M+' '+P.P_Nombre AS Profesor, H.Dia, H.Hora FROM Horario_Sugerido HS
+				INNER JOIN Curso_Horario CH ON CH.ID_Curso = HS.ID_Curso 
+				INNER JOIN Horario H ON H.Clave_Horario = CH.Clave_Horario
+				INNER JOIN Curso C ON HS.ID_Curso = C.ID_Curso
+				INNER JOIN Materia M ON M.Clave = C.Clave_Materia
+				INNER JOIN Profesor P ON C.ID_Profesor = P.ID
+				WHERE Kardex_HS = 6 ORDER BY H.Clave_Horario
 		END
 END;
 
@@ -257,7 +265,7 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 					SET @MateriasHS =(SELECT COUNT(DISTINCT ID_Curso) FROM Horario_Sugerido);
 
 				
-					While(@countV > 0 AND @MateriasHS < 7)
+					While(@countV > 0 AND @MateriasHS < 6)
 					begin
 
 						declare @IdV int = (SELECT TOP(1) Id_Curso FROM @tableV);
@@ -286,23 +294,6 @@ END; --END STORE PROCEDURE
 
 
 
-
-EXEC Recorrido_Materia 6, 1;
-
-select * from [dbo].[Materias_Cursadas] where  ID_Kardex = 6
-select * from  [dbo].[Horario_Sugerido]  where [Kardex_HS] = 6
-delete from [dbo].[Horario_Sugerido] where [Kardex_HS] = 6
-
-
-SELECT  C.Grupo, M.Nombre_Materia, P.P_Apellido_P+' '+P.P_Apellido_M+' '+P.P_Nombre AS Profesor, H.Dia, H.Hora FROM Horario_Sugerido HS
-INNER JOIN Curso_Horario CH ON CH.ID_Curso = HS.ID_Curso 
-INNER JOIN Horario H ON H.Clave_Horario = CH.Clave_Horario
-INNER JOIN Curso C ON HS.ID_Curso = C.ID_Curso
-INNER JOIN Materia M ON M.Clave = C.Clave_Materia
-INNER JOIN Profesor P ON C.ID_Profesor = P.ID
-WHERE Kardex_HS = 6 ORDER BY H.Clave_Horario
-
-DELETE FROM Horario_Sugerido
 
 
 
