@@ -225,12 +225,7 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 		IF(@Tipo_Horario = 2) -----VESPERTINO
 		BEGIN --VALIDA TIPO HORARIO
 
-			--DECLARE @CountCursos int;
-			--DECLARE @CursosActuales int;
-			--DECLARE @CursoElegido int;
-			--DECLARE @MateriasHS int;
 		
-
 			SELECT @CountCursos = COUNT(*) FROM [dbo].[Curso] C 
 			WHERE C.Clave_Materia = @ClaveMateria and [Grupo] LIKE '%V%';
 			
