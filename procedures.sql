@@ -54,6 +54,7 @@ CREATE OR ALTER PROCEDURE Validar_TipoMateria
 END;
 
 
+
 CREATE OR ALTER PROCEDURE Verificar_Secuencia
 	@ClaveMateria varchar(4),
 	@Tipo_Horario int,
@@ -68,14 +69,15 @@ CREATE OR ALTER PROCEDURE Verificar_Secuencia
 		FROM Secuencias
 		WHERE Materia_Base = @ClaveMateria;
 
-		SELECT @Cont_Cursadas = COUNT(*)
-		FROM [dbo].[Materias_Cursadas] M
-		INNER JOIN [dbo].[Secuencias]  S ON  M.[Clave_Materia] = S.Materia_Necesaria
-		WHERE Materia_Base = @ClaveMateria;
+		SELECT @Cont_Cursadas = COUNT(*) FROM [dbo].[Materias_Cursadas] M
+		INNER JOIN [dbo].[Secuencias] S ON  M.[Clave_Materia] = S.Materia_Necesaria
+		WHERE Materia_Base = @ClaveMateria and M.ID_Kardex = @KardexVS;
 
+	
 		IF(@Cont_Cursadas = @Total_Secuencia)
 		BEGIN
 			EXEC Validar_TipoMateria @ClaveMateria, @Tipo_Horario, @KardexVS;
+			
 		END
 END;
 
@@ -93,6 +95,7 @@ CREATE OR ALTER PROCEDURE ValidarCursada
 		IF NOT EXISTS(SELECT 1 FROM [dbo].[Materias_Cursadas] WHERE Clave_Materia = @ClaveMateria and ID_Kardex = @Id_Kardex)
 		BEGIN 
 			EXEC Verificar_Secuencia @ClaveMateria, @Tipo_Horario,@Id_Kardex;
+		
 		END
 END;
 
@@ -115,7 +118,6 @@ CREATE OR ALTER PROCEDURE Recorrido_Materia
 			declare @Nombre_Materia varchar(80) = (SELECT TOP(1) [Nombre_Materia] FROM @table order by Semestre ASC, NEWID() )
 			declare @Semestre INT = (SELECT TOP(1) [Semestre] FROM @table order by Semestre ASC)
 			EXEC ValidarCursada @Id_Kardex = @Kardex, @Materia= @Nombre_Materia, @Tipo_Horario =@TipoHorario
-			
 			delete @table where [Nombre_Materia] = @Nombre_Materia
 			set @count = (select count(*) from @table)
 		end
@@ -129,18 +131,20 @@ CREATE OR ALTER PROCEDURE Generar_Horario
 	BEGIN
 		IF(@Estatus_Alumno = 1)
 		BEGIN
+
 			DELETE FROM Horario_Sugerido WHERE [Kardex_HS] = @Kardex;
-				EXEC Recorrido_Materia @Kardex, @Tipo_Horario;
-				SELECT  C.Grupo, M.Nombre_Materia, P.P_Apellido_P+' '+P.P_Apellido_M+' '+P.P_Nombre AS Profesor, H.Dia, H.Hora FROM Horario_Sugerido HS
-				INNER JOIN Curso_Horario CH ON CH.ID_Curso = HS.ID_Curso 
-				INNER JOIN Horario H ON H.Clave_Horario = CH.Clave_Horario
-				INNER JOIN Curso C ON HS.ID_Curso = C.ID_Curso
-				INNER JOIN Materia M ON M.Clave = C.Clave_Materia
-				INNER JOIN Profesor P ON C.ID_Profesor = P.ID
-				WHERE Kardex_HS = 6 ORDER BY H.Clave_Horario
+			EXEC Recorrido_Materia @Kardex, @Tipo_Horario;
+			---Consulta
+			
+			SELECT  C.Grupo, M.Nombre_Materia, P.P_Apellido_P+' '+P.P_Apellido_M+' '+P.P_Nombre AS Profesor, H.Dia, H.Hora FROM Horario_Sugerido HS
+			INNER JOIN Curso_Horario CH ON CH.ID_Curso = HS.ID_Curso 
+			INNER JOIN Horario H ON H.Clave_Horario = CH.Clave_Horario
+			INNER JOIN Curso C ON HS.ID_Curso = C.ID_Curso
+			INNER JOIN Materia M ON M.Clave = C.Clave_Materia
+			INNER JOIN Profesor P ON C.ID_Profesor = P.ID
+			WHERE Kardex_HS = @Kardex ORDER BY H.Clave_Horario
 		END
 END;
-
 
 
 
@@ -153,16 +157,17 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 	AS
 	BEGIN 
 
-		DECLARE @CountCursos int;
-		DECLARE @CursosActuales int;
-		DECLARE @CursoElegido int;
-		DECLARE @MateriasHS int;
+		DECLARE @CountCursos int = 0;
+		DECLARE @CursosActuales int = 0;
+		DECLARE @CursoElegido int = 0;
+		DECLARE @MateriasHS int = 0;
 		
 		IF(@Tipo_Horario = 1)
 		BEGIN --VALIDA TIPO HORARIO
 
 			SELECT @CountCursos = COUNT(*) FROM [dbo].[Curso] C 
 			WHERE C.Clave_Materia = @ClaveMateria and [Grupo] LIKE '%M%';
+	
 			
 			if(@CountCursos  > 0)
 			begin
@@ -174,8 +179,8 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 				WHERE C.Clave_Materia = @ClaveMateria and [Grupo] LIKE '%M%' ORDER BY NEWID();
 
 				--validar si la tabla horario sugerido ya tiee cursos
-				SET @CursosActuales = (SELECT COUNT(*) FROM Horario_Sugerido WHERE Kardex_HS = @Kardex);
-		
+				SET @CursosActuales = (SELECT COUNT(ID_Curso) FROM Horario_Sugerido WHERE Kardex_HS = @Kardex);
+				--SELECT* FROM Horario_Sugerido WHERE Kardex_HS = @Kardex
 				
 				if(@CursosActuales = 0) ---si estaba vacia 
 				begin
@@ -188,18 +193,21 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 				
 				else  --CASO HORARIO > 0 no esta vacia
 				begin
+
 						 --RECORRIDO----------------------------------------------------------------------
 					declare @table table( Id_Curso int);
 					insert into @table(Id_Curso) select ID_Curso from #OpcionesM;
 
 					declare @Count int = (select count(*) from @table);
 
-					SET @MateriasHS =(SELECT COUNT(DISTINCT ID_Curso) FROM Horario_Sugerido);
+					SET @MateriasHS =(SELECT COUNT(DISTINCT ID_Curso) FROM Horario_Sugerido WHERE [Kardex_HS] = @Kardex);
 
+					print(@Count)
+					print(@MateriasHS)
+					
 					---recorrer curso por cuso de los cursos diponibles y validar que se inserten 6 materias
 					While(@count > 0 AND @MateriasHS < 6)
 					begin
-
 						declare @Id int = (SELECT TOP(1) Id_Curso FROM @table);
 					
 						IF NOT EXISTS(SELECT Clave_Horario FROM [dbo].[Curso_Horario] WHERE ID_Curso = @id INTERSECT
@@ -218,7 +226,7 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 
 				end	--CURSOS ACTUALES > 0
 	
-			end --END IF CURSOS > 0
+			end --END IF CURSOS > 0 */
 		
 		END--END IF TH = 1
 		
@@ -243,8 +251,9 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 				
 				if(@CursosActuales = 0)
 				begin
+				
 					SET @CursoElegido = (SELECT TOP(1) ID_Curso FROM #OpcionesV );
-
+					print(@ClaveMateria)
 					INSERT INTO Horario_Sugerido(Kardex_HS, ID_Curso, ID_Tipo_Horario)
 					VALUES(@Kardex,@CursoElegido,@Tipo_Horario);
 	
@@ -252,25 +261,28 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 				
 				else  --CASO HORARIO > 0
 				begin
+			
 						 --RECORRIDO----------------------------------------------------------------------
 					declare @tableV table( Id_Curso int);
 					insert into @tableV(Id_Curso) select ID_Curso from #OpcionesV;
 
 					declare @CountV int = (select count(*) from @tableV);
 
-					SET @MateriasHS =(SELECT COUNT(DISTINCT ID_Curso) FROM Horario_Sugerido);
-
+					SET @MateriasHS =(SELECT COUNT(DISTINCT ID_Curso) FROM Horario_Sugerido WHERE[Kardex_HS] = @Kardex);
 				
 					While(@countV > 0 AND @MateriasHS < 6)
 					begin
 
 						declare @IdV int = (SELECT TOP(1) Id_Curso FROM @tableV);
+
 					
+
 						IF NOT EXISTS(SELECT Clave_Horario FROM [dbo].[Curso_Horario] WHERE ID_Curso = @idV INTERSECT
 						SELECT CH.Clave_Horario FROM Horario_Sugerido HS INNER JOIN Curso_Horario CH 
 						ON HS.ID_Curso = CH.ID_Curso WHERE HS.Kardex_HS = @Kardex)
 						
-						BEGIN	
+						BEGIN
+						print(@ClaveMateria)
 							INSERT INTO Horario_Sugerido(Kardex_HS, ID_Curso, ID_Tipo_Horario)VALUES(@Kardex,@IdV,@Tipo_Horario);			
 							BREAK;				
 						END -- IF NOT
@@ -287,19 +299,6 @@ CREATE OR ALTER PROCEDURE Asignar_CursosHS
 		END--END IF TH = 2
 
 END; --END STORE PROCEDURE
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
