@@ -127,8 +127,7 @@ CREATE OR ALTER PROCEDURE Validar_SecuenciaMixto
 		DECLARE @Total_Secuencia int;
 		DECLARE @Cont_Cursadas int;
 		DECLARE @Clave_Materia varchar(4) = (SELECT Clave_Materia FROM Curso WHERE ID_Curso = @ID_Curso);
-
-		
+	
 		SELECT @Total_Secuencia = COUNT(*)
 		FROM Secuencias
 		WHERE Materia_Base = @Clave_Materia;
@@ -136,29 +135,29 @@ CREATE OR ALTER PROCEDURE Validar_SecuenciaMixto
 		SELECT @Cont_Cursadas = COUNT(*)
 		FROM [dbo].[Materias_Cursadas] M
 		INNER JOIN [dbo].[Secuencias]  S ON  M.[Clave_Materia] = S.Materia_Necesaria
-		WHERE Materia_Base = @Clave_Materia;
+		WHERE Materia_Base = @Clave_Materia AND M.ID_Kardex = @Id_Kardex;
 
 		IF(@Cont_Cursadas = @Total_Secuencia) --- valida si tiene todas las secuencias
 		BEGIN
 			SET @Validacion = 0;
-			----retorna valor a java y ejecutar el proceso Agragar CursoHSP
+			PRINT('PUEDE AGREGARSE')
 		END
 
 		ELSE --- No tiene todas las validaciones
 		BEGIN 
 			 SET @Validacion = 1;
-			--MOStrar mensaje y permitir a l usuario selecccionar si continuar o no
-		--si respuesta es continuar mandar a ejecutar Agregar_CursoHSP
-		---
-		END
+			 PRINT('NO TIENES TODAS LAS SECUENCIAS ¿QUIERES CONTINUAR?')
+			--llamar en java mnesje
+		--si respuesta es Si llamar a agregar Curso
 	
+		END
 END;
 
 
 CREATE OR ALTER PROCEDURE Agregar_CursoHSP
 	@ID_Curso int,
 	@Id_Kardex  int,
-	@Validacion bit OUTPUT
+	@ValidacionAG bit OUTPUT
 	AS
 		BEGIN
 ---validar traslapes
@@ -180,13 +179,15 @@ CREATE OR ALTER PROCEDURE Agregar_CursoHSP
 						ON HS.ID_Curso = CH.ID_Curso WHERE HS.Kardex_HS = @Id_Kardex)	
 					BEGIN	
 						INSERT INTO Horario_Sugerido(Kardex_HS, ID_Curso, ID_Tipo_Horario)VALUES(@Id_Kardex,@ID_Curso,3);
-						SET @Validacion = 0;
+						SET @ValidacionAG = 0;
+						PRINT('COMPLETADO')
 					END -- IF NOT
 
 					ELSE --- hay translapes
 					BEGIN
-						SET @Validacion = 1;
-						---mostrar msj en java de que existe traslape
+						SET @ValidacionAG = 1;
+						PRINT('NO SE PUEDE REALIZAR LA ACCION DEBIDO A TRASLAPES')
+						---mostrar msj en java que no se pudo por translapes
 					END
 
 				END
@@ -198,9 +199,9 @@ CREATE OR ALTER PROCEDURE BorrarCursoElegido
 	@ID_kardex int
 	AS
 	BEGIN
-		---Borra un curso elegido por el usuario
 		DELETE FROM [dbo].[Horario_Sugerido] WHERE ID_Curso = @ID_curso AND Kardex_HS =@ID_kardex;
-	
-	
 	END;
+
+	 
+
 
